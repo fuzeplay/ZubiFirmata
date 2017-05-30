@@ -42,6 +42,7 @@
 // extended command set using sysex (0-127/0x00-0x7F)
 /* 0x00-0x0F reserved for user-defined commands */
 #define TONE_DATA               0x5F // send a tone or noTone command
+#define LED_STRIP               0x7C // control the LED strip
 #define ENCODER_DATA            0x61 // reply with encoders current positions
 #define SERVO_CONFIG            0x70 // set max angle, minPulse, maxPulse, freq
 #define STRING_DATA             0x71 // a string message with 14-bits per char
@@ -83,6 +84,26 @@
 #define TONE                    0x0A // pin configured for tone function
 #define IGNORE                  0x7F // pin configured to be ignored by digitalWrite and capabilityResponse
 #define TOTAL_PIN_MODES         12
+
+
+//LED Strip
+#define ALL_LEDS 0x7F //This means you change all LEDs
+#define CLEAR_LED 0x7F //This means clear the selected LEDs
+
+//LED Strip Colors (Make sure this doesn't exceed 0x7F)
+#define COLOR_RED 0x00
+#define COLOR_GREEN 0x01
+#define COLOR_BLUE 0x02
+
+const int COLOR_RED_ARRAY[3] = {255, 0, 0};
+const int COLOR_GREEN_ARRAY[3] = {0, 255, 0};
+const int COLOR_BLUE_ARRAY[3] = {0, 0, 255};
+
+//LED Initialization (Don't change any of this!)
+//https://github.com/FastLED/FastLED/wiki/Basic-usage for more details
+#define NUMBER_OF_LEDS 6 //Number of linear LEDs on the board (don't change this)
+#define DATA_PIN 16 //Serial Data output (don't change this)
+#define CLOCK_PIN 15 //Serial Clock output (don't change this)
 
 extern "C" {
   // callback function types

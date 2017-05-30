@@ -25,6 +25,7 @@
 
 #include <Servo.h>
 #include <Wire.h>
+#include <FastLED.h>
 #include <FirmataTone.h>
 
 #define TONE_TONE     0x00
@@ -41,7 +42,6 @@
 
 // the minimum interval for sampling analog input
 #define MINIMUM_SAMPLING_INTERVAL 10
-
 
 /*==============================================================================
  * GLOBAL VARIABLES
@@ -85,6 +85,9 @@ byte servoPinMap[TOTAL_PINS];
 byte detachedServos[MAX_SERVOS];
 byte detachedServoCount = 0;
 byte servoCount = 0;
+
+//LEDs
+CRGB leds[NUMBER_OF_LEDS]; //LED Array (don't change this)
 
 boolean isResetting = false;
 
@@ -308,7 +311,7 @@ void setPinModeCallback(byte pin, int mode)
       if (IS_PIN_DIGITAL(pin)) {
         digitalWrite(PIN_TO_DIGITAL(pin), LOW); // disable PWM
         pinMode(PIN_TO_DIGITAL(pin), OUTPUT);
-        pinConfig[pin] = TONE;        
+        pinConfig[pin] = TONE;
       }
       break;
     default:
@@ -415,11 +418,46 @@ void sysexCallback(byte command, byte argc, byte *argv)
   unsigned int delayTime;
 
   switch (command) {
+    case LED_STRIP:
+      if (argc > 1) {
+        byte pin = argv[0]; //Is this connect?
+        byte colorCode = argv[1];
+
+        //If this is a clear command
+        if (colorCode == CLEAR_LED) {
+          //If this is to clear all LEDs
+          if (pin == ALL_LEDS) {
+            clearAllLEDs();
+            break;
+          }
+
+          //Else, clear One LED
+          leds[pin] = CRGB::Black;
+          FastLED.show();
+          break;
+        }
+
+        //Else, this is a color command
+        //Calculate color based based on code
+        int redColorValue = getRedColorFromColorCode(colorCode);
+        int greenColorValue = getBlueColorFromColorCode(colorCode);
+        int blueColorValue = getGreenColorFromColorCode(colorCode);
+
+        if (pin == ALL_LEDS) {
+          //Set all LED colors
+          setAllLEDsColor(redColorValue, greenColorValue, blueColorValue);
+        } else {
+          //Set one LED color
+          leds[pin].setRGB(redColorValue, greenColorValue, blueColorValue);
+          FastLED.show();
+        }
+      }
+      break;
     case TONE_DATA:
       if (argc > 1) {
         byte toneCommand = argv[0];
         byte pin = argv[1];
-  
+
         if (toneCommand == TONE_TONE && argc > 5) {
           unsigned int frequency = argv[2] + (argv[3] << 7);
           // duration is currently limited to 16,383 ms
@@ -647,6 +685,49 @@ void disableI2CPins() {
   queryIndex = -1;
 }
 
+//Used to clear all the LEDs after a light sequence is complete
+void clearAllLEDs() {
+  for (int i=0;i<NUMBER_OF_LEDS;i++) {
+     leds[i] = CRGB::Black;
+  }
+  FastLED.show();
+}
+
+//Set all LEDs color
+void setAllLEDsColor(int redColorValue, int greenColorValue, int blueColorValue) {
+  for (int i=0;i<NUMBER_OF_LEDS;i++) {
+     leds[i].setRGB(redColorValue, greenColorValue, blueColorValue);
+  }
+  FastLED.show();
+}
+
+int getRedColorFromColorCode(byte colorCode) {
+  return getColorFromArray(0, colorCode);
+}
+
+int getGreenColorFromColorCode(byte colorCode) {
+  return getColorFromArray(1, colorCode);
+}
+
+int getBlueColorFromColorCode(byte colorCode) {
+  return getColorFromArray(2, colorCode);
+}
+
+int getColorFromArray(int index, byte colorCode) {
+  if (colorCode == COLOR_RED) {
+    return COLOR_RED_ARRAY[index];
+  }
+  else if (colorCode == COLOR_GREEN) {
+    return COLOR_GREEN_ARRAY[index];
+  }
+  else {
+      //blue
+      return COLOR_BLUE_ARRAY[index];
+  }
+}
+
+
+
 /*==============================================================================
  * SETUP()
  *============================================================================*/
@@ -686,6 +767,10 @@ void systemResetCallback()
 
   detachedServoCount = 0;
   servoCount = 0;
+
+  //Initialize LEDs, don't change this part of the code
+  FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, NUMBER_OF_LEDS);
+  clearAllLEDs();
 
   /* send digital inputs to set the initial state on the host computer,
    * since once in the loop(), this firmware will only send on change */
