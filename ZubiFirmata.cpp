@@ -14,7 +14,7 @@
 //* Includes
 //******************************************************************************
 
-#include "FirmataTone.h"
+#include "ZubiFirmata.h"
 #include "HardwareSerial.h"
 
 extern "C" {

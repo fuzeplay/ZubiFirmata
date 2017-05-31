@@ -9,7 +9,7 @@ cp -r extras temp/Firmata
 cp -r utility temp/Firmata
 cp Boards.h temp/Firmata
 cp Firmata.cpp temp/Firmata
-cp FirmataTone.h temp/Firmata
+cp ZubiFirmata.h temp/Firmata
 cp keywords.txt temp/Firmata
 cp readme.md temp/Firmata
 cd temp
@@ -25,7 +25,7 @@ mv readme.md ./extras/
 mkdir src
 mv Boards.h ./src/
 mv Firmata.cpp ./src/
-mv FirmataTone.h ./src/
+mv ZubiFirmata.h ./src/
 mv utility ./src/
 cd ..
 find . -name "*.DS_Store" -type f -delete

@@ -1,5 +1,5 @@
 /*
-  FirmataTone.h - Firmata library v2.4.3 - 2015-4-11
+  ZubiFirmata.h - Firmata library v2.4.3 - 2015-4-11
   Copyright (c) 2006-2008 Hans-Christoph Steiner.  All rights reserved.
 
   This library is free software; you can redistribute it and/or

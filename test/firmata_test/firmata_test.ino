@@ -6,7 +6,7 @@
  */
 
 #include <ArduinoUnit.h>
-#include <FirmataTone.h>
+#include <ZubiFirmata.h>
 
 void setup()
 {

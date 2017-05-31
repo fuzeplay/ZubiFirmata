@@ -50,7 +50,7 @@ reestablishing a connection.
 * writePort function in Boards.h now returns 1 (to suppress compiler warning)
 * Updated syntax highlighting (keywords.txt)
 * Fixed IS_PIN_SPI ifndef condition in boards.h
-* Added constants to FirmataTone.h to reserve configurable firmata features
+* Added constants to ZubiFirmata.h to reserve configurable firmata features
 * Fixed issue where firmwareName was not reported correctly in Windows
 * Ensure incoming String via STRING_DATA command is null-terminated
 * Fixed memory leak when receiving String via STRING_DATA command

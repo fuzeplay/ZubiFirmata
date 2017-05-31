@@ -11,8 +11,7 @@
   Copyright (C) 2006-2008 Hans-Christoph Steiner.  All rights reserved.
   Copyright (C) 2010-2011 Paul Stoffregen.  All rights reserved.
   Copyright (C) 2009 Shigeru Kobayashi.  All rights reserved.
-  Copyright (C) 2009-2014 Jeff Hoefs.  All rights reserved.
-  Copyright (C) 2014 Alan Yorinks. All rights reserved.
+  Copyright (C) 2009-2015 Jeff Hoefs.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -22,22 +21,15 @@
   See file LICENSE.txt for further informations on licensing terms.
 
   Last updated by Jeff Hoefs: April 11, 2015
- */
-
-/*
-  README
-
-  The Arduino Yun has both an Arduino (Atmega32u4) environment and a
-  Linux (Linino) environment.
-
-  StandardFirmataYun enables Firmata running on the Arduino environment
-  to communicate with a Firmata client application running on the Linux
-  environment.
 */
 
 #include <Servo.h>
 #include <Wire.h>
-#include <FirmataTone.h>
+#include <FastLED.h>
+#include <ZubiFirmata.h>
+
+#define TONE_TONE     0x00
+#define TONE_NO_TONE  0x01
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -50,7 +42,6 @@
 
 // the minimum interval for sampling analog input
 #define MINIMUM_SAMPLING_INTERVAL 10
-
 
 /*==============================================================================
  * GLOBAL VARIABLES
@@ -94,6 +85,9 @@ byte servoPinMap[TOTAL_PINS];
 byte detachedServos[MAX_SERVOS];
 byte detachedServoCount = 0;
 byte servoCount = 0;
+
+//LEDs
+CRGB leds[NUMBER_OF_LEDS]; //LED Array (don't change this)
 
 boolean isResetting = false;
 
@@ -241,6 +235,9 @@ void setPinModeCallback(byte pin, int mode)
   if (pinConfig[pin] == IGNORE)
     return;
 
+  if (pinConfig[pin] == TONE && mode != TONE) {
+    noTone(pin);
+  }
   if (pinConfig[pin] == I2C && isI2CEnabled && mode != I2C) {
     // disable i2c so pins can be used for other functions
     // the following if statements should reconfigure the pins properly
@@ -308,6 +305,13 @@ void setPinModeCallback(byte pin, int mode)
         // mark the pin as i2c
         // the user must call I2C_CONFIG to enable I2C for a device
         pinConfig[pin] = I2C;
+      }
+      break;
+    case TONE:
+      if (IS_PIN_DIGITAL(pin)) {
+        digitalWrite(PIN_TO_DIGITAL(pin), LOW); // disable PWM
+        pinMode(PIN_TO_DIGITAL(pin), OUTPUT);
+        pinConfig[pin] = TONE;
       }
       break;
     default:
@@ -414,6 +418,58 @@ void sysexCallback(byte command, byte argc, byte *argv)
   unsigned int delayTime;
 
   switch (command) {
+    case LED_STRIP:
+      if (argc > 1) {
+        byte pin = argv[0];
+        byte colorCode = argv[1];
+
+        //If this is a clear command
+        if (colorCode == CLEAR_LED) {
+          //If this is to clear all LEDs
+          if (pin == ALL_LEDS) {
+            clearAllLEDs();
+            return;
+          }
+
+          //Else, clear One LED
+          leds[pin] = CRGB::Black;
+          FastLED.show();
+          return;
+        }
+
+        //Else, this is a color command
+        //Calculate color based based on code
+        int redColorValue = getRedColorFromColorCode(colorCode);
+        int greenColorValue = getBlueColorFromColorCode(colorCode);
+        int blueColorValue = getGreenColorFromColorCode(colorCode);
+
+        if (pin == ALL_LEDS) {
+          //Set all LED colors
+          setAllLEDsColor(redColorValue, greenColorValue, blueColorValue);
+        } else {
+          //Set one LED color
+          leds[pin].setRGB(redColorValue, greenColorValue, blueColorValue);
+          FastLED.show();
+        }
+      }
+      break;
+    case TONE_DATA:
+      if (argc > 1) {
+        byte toneCommand = argv[0];
+        byte pin = argv[1];
+
+        if (toneCommand == TONE_TONE && argc > 5) {
+          unsigned int frequency = argv[2] + (argv[3] << 7);
+          // duration is currently limited to 16,383 ms
+          unsigned int duration = argv[4] + (argv[5] << 7);
+          setPinModeCallback(pin, TONE);
+          tone(pin, frequency, duration);
+        }
+        if (toneCommand == TONE_NO_TONE) {
+          noTone(pin);
+        }
+      }
+      break;
     case I2C_REQUEST:
       mode = argv[1] & I2C_READ_WRITE_MODE_MASK;
       if (argv[1] & I2C_10BIT_ADDRESS_MODE_MASK) {
@@ -567,6 +623,10 @@ void sysexCallback(byte command, byte argc, byte *argv)
           Firmata.write(SERVO);
           Firmata.write(14);
         }
+        if (IS_PIN_DIGITAL(pin)) {
+          Firmata.write(TONE);
+          Firmata.write(14); // 14 bit frequency value
+        }
         if (IS_PIN_I2C(pin)) {
           Firmata.write(I2C);
           Firmata.write(1);  // TODO: could assign a number to map to SCL or SDA
@@ -625,6 +685,63 @@ void disableI2CPins() {
   queryIndex = -1;
 }
 
+//Used to clear all the LEDs after a light sequence is complete
+void clearAllLEDs() {
+  for (int i=0;i<NUMBER_OF_LEDS;i++) {
+     leds[i] = CRGB::Black;
+  }
+  FastLED.show();
+}
+
+//Set all LEDs color
+void setAllLEDsColor(int redColorValue, int greenColorValue, int blueColorValue) {
+  for (int i=0;i<NUMBER_OF_LEDS;i++) {
+     leds[i].setRGB(redColorValue, greenColorValue, blueColorValue);
+  }
+  FastLED.show();
+}
+
+int getRedColorFromColorCode(byte colorCode) {
+  return getColorFromArray(0, colorCode);
+}
+
+int getGreenColorFromColorCode(byte colorCode) {
+  return getColorFromArray(1, colorCode);
+}
+
+int getBlueColorFromColorCode(byte colorCode) {
+  return getColorFromArray(2, colorCode);
+}
+
+int getColorFromArray(int index, byte colorCode) {
+  if (colorCode == COLOR_RED) {
+    return RED_ARRAY[index];
+  }
+  else if (colorCode == COLOR_GREEN) {
+    //I need to reverse these two arrays to get them to work, but I can't figure out why...
+    return BLUE_ARRAY[index];
+  }
+  else if (colorCode == COLOR_BLUE){
+    //I need to reverse these two arrays to get them to work, but I can't figure out why...
+    return GREEN_ARRAY[index];
+  }
+  else if (colorCode == COLOR_PURPLE){
+      return PURPLE_ARRAY[index];
+  }
+  else if (colorCode == COLOR_TURQUOISE){
+      return TURQUOISE_ARRAY[index];
+  }
+  else if (colorCode == COLOR_WHITE){
+      return WHITE_ARRAY[index];
+  }
+  else {
+    //Pink
+      return PINK_ARRAY[index];
+  }
+}
+
+
+
 /*==============================================================================
  * SETUP()
  *============================================================================*/
@@ -665,6 +782,10 @@ void systemResetCallback()
   detachedServoCount = 0;
   servoCount = 0;
 
+  //Initialize LEDs, don't change this part of the code
+  FastLED.addLeds<APA102, DATA_PIN, CLOCK_PIN, BGR>(leds, NUMBER_OF_LEDS);
+  clearAllLEDs();
+
   /* send digital inputs to set the initial state on the host computer,
    * since once in the loop(), this firmware will only send on change */
   /*
@@ -679,18 +800,6 @@ void systemResetCallback()
 
 void setup()
 {
-  Serial1.begin(57600); // Set the baud.
-  while (!Serial1) {
-  }
-  // Wait for U-boot to finish startup.  Consume all bytes until we are done.
-  do {
-    while (Serial1.available() > 0) {
-      Serial1.read();
-    }
-    delay(1000);
-  }
-  while (Serial1.available() > 0);
-
   Firmata.setFirmwareVersion(FIRMATA_MAJOR_VERSION, FIRMATA_MINOR_VERSION);
 
   Firmata.attach(ANALOG_MESSAGE, analogWriteCallback);
@@ -701,7 +810,7 @@ void setup()
   Firmata.attach(START_SYSEX, sysexCallback);
   Firmata.attach(SYSTEM_RESET, systemResetCallback);
 
-  Firmata.begin(Serial1);
+  Firmata.begin(57600);
   systemResetCallback();  // reset to default config
 }
 

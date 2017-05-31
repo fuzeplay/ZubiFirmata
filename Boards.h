@@ -21,7 +21,7 @@
 #include "WProgram.h"
 #endif
 
-// Normally Servo.h must be included before FirmataTone.h (which then includes
+// Normally Servo.h must be included before ZubiFirmata.h (which then includes
 // this file).  If Servo.h wasn't included, this allows the code to still
 // compile, but without support for any Servos.  Hopefully that's what the
 // user intended by not including Servo.h
@@ -451,4 +451,3 @@ static inline unsigned char writePort(byte port, byte value, byte bitmask)
 
 
 #endif /* Firmata_Boards_h */
-
