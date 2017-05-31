@@ -94,10 +94,24 @@
 #define COLOR_RED 0x00
 #define COLOR_GREEN 0x01
 #define COLOR_BLUE 0x02
+#define COLOR_PURPLE  0x03
+#define COLOR_TURQUOISE 0x04
+#define COLOR_ORANGE 0x05
+#define COLOR_WHITE 0x06
+#define COLOR_LIME 0x07
+#define COLOR_PINK 0x08
+#define COLOR_YELLOW 0x09
 
-const int COLOR_RED_ARRAY[3] = {255, 0, 0};
-const int COLOR_GREEN_ARRAY[3] = {0, 255, 0};
-const int COLOR_BLUE_ARRAY[3] = {0, 0, 255};
+const int RED_ARRAY[3] = {80,0,0}; //Hot Potato
+const int GREEN_ARRAY[3] = {0,80,0}; //Catch the Light
+const int BLUE_ARRAY[3] = {0,0,80}; //Newbie Zubi
+const int PURPLE_ARRAY[] = {80,0,120}; //Simon
+const int TURQUOISE_ARRAY[] = {0,80,80}; //Telephone
+const int ORANGE_ARRAY[] = {255,40,0}; //Pong
+const int WHITE_ARRAY[] = {201, 195, 195}; //RGB Single Light Art Hack
+const int LIME_ARRAY[] = {110,190,0}; //Name that tune
+const int PINK_ARRAY[] = {255,90,100}; //Shortcut hacks
+const int YELLOW_ARRAY[] = {130, 80, 0}; //Moodlight
 
 //LED Initialization (Don't change any of this!)
 //https://github.com/FastLED/FastLED/wiki/Basic-usage for more details

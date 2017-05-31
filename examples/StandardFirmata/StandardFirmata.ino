@@ -428,13 +428,13 @@ void sysexCallback(byte command, byte argc, byte *argv)
           //If this is to clear all LEDs
           if (pin == ALL_LEDS) {
             clearAllLEDs();
-            break;
+            return;
           }
 
           //Else, clear One LED
           leds[pin] = CRGB::Black;
           FastLED.show();
-          break;
+          return;
         }
 
         //Else, this is a color command
@@ -715,14 +715,35 @@ int getBlueColorFromColorCode(byte colorCode) {
 
 int getColorFromArray(int index, byte colorCode) {
   if (colorCode == COLOR_RED) {
-    return COLOR_RED_ARRAY[index];
+    return RED_ARRAY[index];
   }
   else if (colorCode == COLOR_GREEN) {
-    return COLOR_GREEN_ARRAY[index];
+    return GREEN_ARRAY[index];
+  }
+  else if (colorCode == COLOR_BLUE){
+      return BLUE_ARRAY[index];
+  }
+  else if (colorCode == COLOR_PURPLE){
+      return PURPLE_ARRAY[index];
+  }
+  else if (colorCode == COLOR_TURQUOISE){
+      return TURQUOISE_ARRAY[index];
+  }
+  else if (colorCode == COLOR_ORANGE){
+      return ORANGE_ARRAY[index];
+  }
+  else if (colorCode == COLOR_WHITE){
+      return WHITE_ARRAY[index];
+  }
+  else if (colorCode == COLOR_LIME){
+      return LIME_ARRAY[index];
+  }
+  else if (colorCode == COLOR_PINK){
+      return PINK_ARRAY[index];
   }
   else {
-      //blue
-      return COLOR_BLUE_ARRAY[index];
+    //Yellow
+      return YELLOW_ARRAY[index];
   }
 }
 
