@@ -1,3 +1,3 @@
-#ZubiFirmata
+# ZubiFirmata
 
-A fork of Firmata designed to work with the Fuze Play Zubi Flyer 
+A fork of the Arduino Firmata firmware to work with the Fuze Zubi Flyer board
