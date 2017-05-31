@@ -420,7 +420,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
   switch (command) {
     case LED_STRIP:
       if (argc > 1) {
-        byte pin = argv[0]; //Is this connect?
+        byte pin = argv[0];
         byte colorCode = argv[1];
 
         //If this is a clear command
@@ -718,10 +718,12 @@ int getColorFromArray(int index, byte colorCode) {
     return RED_ARRAY[index];
   }
   else if (colorCode == COLOR_GREEN) {
-    return GREEN_ARRAY[index];
+    //I need to reverse these two arrays to get them to work, but I can't figure out why...
+    return BLUE_ARRAY[index];
   }
   else if (colorCode == COLOR_BLUE){
-      return BLUE_ARRAY[index];
+    //I need to reverse these two arrays to get them to work, but I can't figure out why...
+    return GREEN_ARRAY[index];
   }
   else if (colorCode == COLOR_PURPLE){
       return PURPLE_ARRAY[index];
@@ -729,21 +731,12 @@ int getColorFromArray(int index, byte colorCode) {
   else if (colorCode == COLOR_TURQUOISE){
       return TURQUOISE_ARRAY[index];
   }
-  else if (colorCode == COLOR_ORANGE){
-      return ORANGE_ARRAY[index];
-  }
   else if (colorCode == COLOR_WHITE){
       return WHITE_ARRAY[index];
   }
-  else if (colorCode == COLOR_LIME){
-      return LIME_ARRAY[index];
-  }
-  else if (colorCode == COLOR_PINK){
-      return PINK_ARRAY[index];
-  }
   else {
-    //Yellow
-      return YELLOW_ARRAY[index];
+    //Pink
+      return PINK_ARRAY[index];
   }
 }
 
